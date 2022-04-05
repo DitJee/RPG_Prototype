@@ -103,8 +103,8 @@ protected:
 		These will be removed on Character death 
 		and added when Character respawns.
 	*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|RPCharacter")
-		TArray<TSubclassOf<class URPGameplayAbility>> CharacterAbilities;
+	/*UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|RPCharacter")
+		TArray<TSubclassOf<class URPGameplayAbility>> CharacterAbilities;*/
 
 	/**
 		Default attributes for a character for initializing on spawn / respawn.

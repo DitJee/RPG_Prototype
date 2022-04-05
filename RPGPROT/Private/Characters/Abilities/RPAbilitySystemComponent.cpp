@@ -3,3 +3,7 @@
 
 #include "Characters/Abilities/RPAbilitySystemComponent.h"
 
+void URPAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
+{
+	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
+}

@@ -13,5 +13,7 @@ UCLASS()
 class RPGPROT_API ARPPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual void OnPossess(APawn* InPawn) override;
 };

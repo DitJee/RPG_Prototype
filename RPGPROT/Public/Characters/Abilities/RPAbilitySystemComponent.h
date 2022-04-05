@@ -17,4 +17,6 @@ class RPGPROT_API URPAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	bool bCharacterAbilitiesGiven = false;
 	bool bStartupEffectsApplied = false;
+
+	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
 };
