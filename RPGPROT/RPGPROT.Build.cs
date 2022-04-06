@@ -19,7 +19,10 @@ public class RPGPROT : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { 
 			"GameplayAbilities", 
 			"GameplayTags", 
-			"GameplayTasks" 
+			"GameplayTasks",
+			"Slate",
+			"SlateCore",
+			"UMG"
 		});
 	}
 }

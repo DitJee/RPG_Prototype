@@ -59,52 +59,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
 		FSlateBrush ItemIcon;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "RPGPROT | RPWeapon")
-		virtual USkeletalMeshComponent* GetWeaponMesh3P() const;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
-
-	void SetOwningCharacter(ARPHeroCharacter* InOwningCharacter);
-
-	virtual void Equip();
-
-	virtual void UnEquip();
-
-	virtual void AddAbilities();
-
-	virtual void RemoveAbilities();
-
-	virtual int32 GetAbilityLevel(ERPAbilityInputID AbilityID);
-
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|Animation")
-		class UAnimMontage* GetEquip3PMontage() const;
-
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|Audio")
-		class USoundCue* GetPickupSound() const;
-
 protected:
 	UPROPERTY()
 		class URPAbilitySystemComponent* AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere)
-		class UCapsuleComponent* CollisionComp;
-
-	UPROPERTY(VisibleAnywhere, Category = "RPGPROT|RPWeapon")
-		USkeletalMeshComponent* WeaponMesh1P;
-
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "RPGPROT|RPWeapon")
-		ARPHeroCharacter* OwningCharacter;
-
-	UPROPERTY(EditAnywhere, Category = "RPGPROT|RPWeapon")
-		TArray<TSubclassOf<URPGameplayAbility>> Abilities;
-
-	UPROPERTY(BlueprintReadOnly, Category = "RPGPROT|RPWeapon")
-		TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
-
-	UPROPERTY(BlueprintReadonly, EditAnywhere, Category = "RPGPROT|RPWeapon")
-		UAnimMontage* Equip3PMontage;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

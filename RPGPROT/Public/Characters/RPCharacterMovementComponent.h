@@ -13,5 +13,19 @@ UCLASS()
 class RPGPROT_API URPCharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
+
+public:
+	URPCharacterMovementComponent();
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
+		float SprintSpeedMultiplier = 1.4f;
+
+	uint8 RequestToStartSprinting : 1;
+
+	virtual float GetMaxSpeed() const override;
+	
+	UFUNCTION(BlueprintCallable, Category = "Sprint")
+		void StartSprinting();
+	UFUNCTION(BlueprintCallable, Category = "Sprint")
+		void StopSprinting();
 };
