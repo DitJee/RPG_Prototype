@@ -99,6 +99,8 @@ public:
 	virtual void OnRep_PlayerState() override;
 	virtual void OnRep_Controller() override;
 
+	void OnAbilityActivationFailed(const UGameplayAbility* FailedAbility, const FGameplayTagContainer& FailTags);
+
 	/**
 		Called from both SetupPlayerInputComponent() and OnRep_PlayerState() because of a 
 		potential race condition where the PlayerController might call ClientRestart() 
@@ -111,5 +113,6 @@ public:
 	
 	void BindASCInput();
 
-	void SetupStartupPerspective();
+	void SetPerspective();
+
 };

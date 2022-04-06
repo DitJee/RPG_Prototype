@@ -22,6 +22,15 @@ void ARPCharacterBase::BeginPlay()
 
 }
 
+bool ARPCharacterBase::IsAlive() const
+{
+	float CurrentHealth = GetHealth();
+
+	UE_LOG(LogTemp, Warning, TEXT("CurrentHealth: %f"), CurrentHealth);
+
+	return CurrentHealth > 0.0f;
+}
+
 UAbilitySystemComponent* ARPCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
@@ -84,7 +93,9 @@ void ARPCharacterBase::InitializeAttributes()
 
 	if (NewHandle.IsValid())
 	{
-		FActiveGameplayEffectHandle ActiveGameplayEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
+		FActiveGameplayEffectHandle ActiveGameplayEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(
+			*NewHandle.Data.Get()
+		);
 	}
 
 
@@ -135,7 +146,7 @@ float ARPCharacterBase::GetHealth() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetHealth();
+		return AttributeSetBase->GetHealth();
 	}
 
 	return 0.0f;
@@ -145,7 +156,7 @@ float ARPCharacterBase::GetMaxHealth() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetMaxHealth();
+		return AttributeSetBase->GetMaxHealth();
 	}
 
 	return 0.0f;
@@ -155,7 +166,7 @@ float ARPCharacterBase::GetMana() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetMana();
+		return AttributeSetBase->GetMana();
 	}
 
 	return 0.0f;
@@ -165,7 +176,7 @@ float ARPCharacterBase::GetMaxMana() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetMaxMana();
+		return AttributeSetBase->GetMaxMana();
 	}
 
 	return 0.0f;
@@ -175,7 +186,7 @@ float ARPCharacterBase::GetStamina() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetStamina();
+		return AttributeSetBase->GetStamina();
 	}
 
 	return 0.0f;
@@ -185,7 +196,7 @@ float ARPCharacterBase::GetMaxStamina() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetMaxStamina();
+		return AttributeSetBase->GetMaxStamina();
 	}
 	return 0.0f;
 }
@@ -194,7 +205,7 @@ float ARPCharacterBase::GetShield() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetShield();
+		return AttributeSetBase->GetShield();
 	}
 
 	return 0.0f;
@@ -204,7 +215,7 @@ float ARPCharacterBase::GetMaxShield() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetMaxShield();
+		return AttributeSetBase->GetMaxShield();
 	}
 
 	return 0.0f;
@@ -214,7 +225,7 @@ float ARPCharacterBase::GetMoveSpeed() const
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->GetMoveSpeed();
+		return AttributeSetBase->GetMoveSpeed();
 	}
 
 	return 0.0f;
@@ -240,7 +251,7 @@ void ARPCharacterBase::SetHealth(float Health)
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->SetHealth(Health);
+		return AttributeSetBase->SetHealth(Health);
 	}
 }
 
@@ -248,7 +259,7 @@ void ARPCharacterBase::SetMana(float Mana)
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->SetHealth(Mana);
+		return AttributeSetBase->SetHealth(Mana);
 	}
 }
 
@@ -256,7 +267,7 @@ void ARPCharacterBase::SetStamina(float Stamina)
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->SetHealth(Stamina);
+		return AttributeSetBase->SetHealth(Stamina);
 	}
 }
 
@@ -264,6 +275,6 @@ void ARPCharacterBase::SetShield(float Shield)
 {
 	if (IsValid(AttributeSetBase))
 	{
-		AttributeSetBase->SetHealth(Shield);
+		return AttributeSetBase->SetHealth(Shield);
 	}
 }

@@ -6,7 +6,7 @@
 
 
 UENUM(BlueprintType)
-enum class EGSAbilityInputID : uint8
+enum class ERPAbilityInputID : uint8
 {
 	// 0 None
 	None				UMETA(DisplayName = "None"),

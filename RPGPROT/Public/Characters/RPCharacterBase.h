@@ -28,6 +28,9 @@ public:
 	/** Sets default values for this character's properties */
 	ARPCharacterBase(const class FObjectInitializer& ObjectInitializer);
 
+	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter")
+		virtual bool IsAlive() const;
+
 	/** Implement IAbilitySystemInterface */
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
