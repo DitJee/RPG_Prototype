@@ -5,6 +5,7 @@
 // GAS includes
 #include "AbilitySystemInterface.h"
 
+#include "RPGPROT/RPGPROT.h"
 
 // Default include
 #include "CoreMinimal.h"
@@ -40,6 +41,10 @@ public:
 		Removing on the Server will remove from Client too.
 	*/
 	virtual void RemoveCharacterAbilities();
+
+	// Switch on AbilityID to return individual ability levels. Hardcoded to 1 for every ability in this project.
+	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter")
+		virtual int32 GetAbilityLevel(ERPAbilityInputID AbilityID) const;
 
 	/**
 	* Getters for attributes from RPAttributeSetBase
@@ -106,18 +111,18 @@ protected:
 		These will be removed on Character death 
 		and added when Character respawns.
 	*/
-	/*UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|RPCharacter")
-		TArray<TSubclassOf<class URPGameplayAbility>> CharacterAbilities;*/
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|RPCharacter")
+		TArray<TSubclassOf<class URPGameplayAbility>> CharacterAbilities;
 
 	/**
 		Default attributes for a character for initializing on spawn / respawn.
 		This is an instant GE that overrides the values for attributes that get reset on spawn/respawn.
 	*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|Abilities")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|Abilities")
 		TSubclassOf<class UGameplayEffect> DefaultAttributes;
 
 	/**These effects are only applied one time on startup*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|Abilities")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|Abilities")
 		TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
 
 	/** 

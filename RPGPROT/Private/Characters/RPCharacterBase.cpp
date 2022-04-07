@@ -5,6 +5,7 @@
 #include "Characters/RPCharacterMovementComponent.h"
 #include "Characters/Abilities/RPAbilitySystemComponent.h"
 #include "Characters/Abilities/AttributeSets/RPAttributeSetBase.h"
+#include "Characters/Abilities/RPGameplayAbility.h"
 
 // Sets default values
 ARPCharacterBase::ARPCharacterBase(const class FObjectInitializer& ObjectInitializer)
@@ -38,17 +39,40 @@ UAbilitySystemComponent* ARPCharacterBase::GetAbilitySystemComponent() const
 
 void ARPCharacterBase::AddCharacterAbilities()
 {
+	ENetRole Role_ = GetLocalRole();
 	/** check for validity */
 	if (
-		GetLocalRole() == ROLE_Authority ||
-		!IsValid(AbilitySystemComponent) ||
-		AbilitySystemComponent->bCharacterAbilitiesGiven
+		AbilitySystemComponent == NULL ||
+		AbilitySystemComponent->bCharacterAbilitiesGiven == true
 		)
 	{
 		return;
 	}
 
-	// TODO
+	// Iterate through ability list to add the it to the character
+	for (TSubclassOf<URPGameplayAbility>& Ability: CharacterAbilities)
+	{
+		URPGameplayAbility* AbilityClass = Cast<URPGameplayAbility>(Ability->GetDefaultObject());
+
+		// Get Ability level from AbilityID
+		ERPAbilityInputID CurrentAbilityID = AbilityClass->AbilityID;
+		int32 CurrentAbilityLevel = GetAbilityLevel(CurrentAbilityID);
+
+		// Get int32 of AbilityInputID
+		ERPAbilityInputID CurrentAbilityInputID = AbilityClass->AbilityInputID;
+		int32 InputID = static_cast<int32>(CurrentAbilityInputID);
+
+		AbilitySystemComponent->GiveAbility(
+			FGameplayAbilitySpec(
+				Ability,
+				CurrentAbilityLevel,
+				InputID,
+				this
+			)
+		);
+	}
+
+	AbilitySystemComponent->bCharacterAbilitiesGiven = true;
 }
 
 void ARPCharacterBase::RemoveCharacterAbilities()
@@ -63,7 +87,36 @@ void ARPCharacterBase::RemoveCharacterAbilities()
 		return;
 	}
 
-	// TODO
+	/**
+		Remove any abilities added from a previous call. 
+		This checks to make sure the ability is in the startup 'CharacterAbilities' array.
+	*/
+	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+
+	for (const FGameplayAbilitySpec& Spec: AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if (
+				(Spec.SourceObject == this) && 
+				CharacterAbilities.Contains(Spec.Ability->GetClass())
+			)
+		{
+			AbilitiesToRemove.Add(Spec.Handle);
+		}
+	}
+
+	// remvoe the abilty one-by-one
+	for (const FGameplayAbilitySpecHandle& Ability : AbilitiesToRemove)
+	{
+		AbilitySystemComponent->ClearAbility(Ability);
+	}
+
+	AbilitySystemComponent->bCharacterAbilitiesGiven = false;
+	
+}
+
+int32 ARPCharacterBase::GetAbilityLevel(ERPAbilityInputID AbilityID) const
+{
+	return 1;
 }
 
 void ARPCharacterBase::InitializeAttributes()
