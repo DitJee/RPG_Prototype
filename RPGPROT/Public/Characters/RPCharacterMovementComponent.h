@@ -18,7 +18,7 @@ public:
 	URPCharacterMovementComponent();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
-		float SprintSpeedMultiplier = 1.4f;
+		float SprintSpeedMultiplier = 5.f;
 
 	uint8 RequestToStartSprinting : 1;
 

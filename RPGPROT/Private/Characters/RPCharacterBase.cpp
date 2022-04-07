@@ -27,7 +27,7 @@ bool ARPCharacterBase::IsAlive() const
 {
 	float CurrentHealth = GetHealth();
 
-	UE_LOG(LogTemp, Warning, TEXT("CurrentHealth: %f"), CurrentHealth);
+	//UE_LOG(LogTemp, Warning, TEXT("CurrentHealth: %f"), CurrentHealth);
 
 	return CurrentHealth > 0.0f;
 }

@@ -22,17 +22,32 @@ public:
 	
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGPROT | Gameplay Effect")
-		TSubclassOf<class UGameplayEffect>  GameplayEffectSprint;
-
 	bool bEndSprint;
 
 	FActiveGameplayEffectHandle GESprintHandle;
 
 	class UAbilityTask_WaitInputRelease* WaitInputReleaseClass;
 
+	class UAbilityTask_WaitDelay* WaitDelayClass;
+
+	class UAbilityTask_NetworkSyncPoint* NetworkSyncPointClass;
+
 	FDelegateHandle WaitInputReleaseHandle;
 
-	void OnRelease();
+	UFUNCTION()
+		void OnRelease(float TimeHeld);
 
+	UFUNCTION()
+		void WaitDelay();
+
+	UFUNCTION()
+		void OnWaitNetSync();
+
+	UFUNCTION()
+		void OnSync();
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGPROT | Gameplay Effect")
+		TSubclassOf<class UGameplayEffect>  GameplayEffectSprint;
 };
