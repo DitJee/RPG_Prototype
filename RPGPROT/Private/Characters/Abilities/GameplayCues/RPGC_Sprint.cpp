@@ -50,4 +50,6 @@ void ARPGC_Sprint::ExecuteOnRemove(AActor* MyTarget, const FGameplayCueParameter
         Particle_L->DestroyComponent();
         Particle_R->DestroyComponent();
     }
+
 }
+
