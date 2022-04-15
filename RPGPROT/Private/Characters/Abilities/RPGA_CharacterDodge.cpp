@@ -33,13 +33,9 @@ void URPGA_CharacterDodge::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 	bool bIsInAir = CMC->IsFalling();
 
-	if (bIsSuccess && !bIsInAir)
 	{
 		/**
 			Play the Dodge montage
-		*/
-		PlayMontageAndWaitForEventsClass = URPAT_PlayMontageAndWaitForEvents::PlayMontageAndWaitForEvent(
-			this,
 			TEXT("None"),
 			DodgeAnimMontage,
 			FGameplayTagContainer(),
@@ -61,16 +57,10 @@ void URPGA_CharacterDodge::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 		// Calculate direction and velocity
 		
-		FVector Velocity = GetAvatarActorFromActorInfo()->GetVelocity();
 		FRotator CurrentRotation = GetAvatarActorFromActorInfo()->GetActorRotation();
 
 		if (CMC)
 		{
-			FVector WorldDirection = CMC->GetLastInputVector();
-
-			// rotate the actor
-			ARPHeroCharacter* HeroCharacter = Cast<ARPHeroCharacter>(GetAvatarActorFromActorInfo());
-
 			if (HeroCharacter)
 			{
 				FVector Start = HeroCharacter->GetActorLocation();
@@ -110,26 +100,15 @@ void URPGA_CharacterDodge::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		}
 
 	}
-	else
-	{
 		K2_CancelAbility();
 	}
 }
 
 void URPGA_CharacterDodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
 void URPGA_CharacterDodge::OnFinish()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
-
-void URPGA_CharacterDodge::OnBlendOut(FGameplayTag EventTag, FGameplayEventData EventData)
 {
-}
-
 void URPGA_CharacterDodge::OnCompleted(FGameplayTag EventTag, FGameplayEventData EventData)
 {
 }
@@ -144,4 +123,5 @@ void URPGA_CharacterDodge::OnCancelled(FGameplayTag EventTag, FGameplayEventData
 
 void URPGA_CharacterDodge::EventReceived(FGameplayTag EventTag, FGameplayEventData EventData)
 {
+
 }

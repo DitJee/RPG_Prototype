@@ -13,7 +13,6 @@ UCLASS()
 class RPGPROT_API URPGA_CharacterDodge : public URPGameplayAbility
 {
 	GENERATED_BODY()
-
 public:
 	URPGA_CharacterDodge();
 
