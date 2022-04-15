@@ -8,6 +8,8 @@
 #include "Characters/Abilities/RPAbilitySystemComponent.h"
 #include "RPGPROT/RPGPROT.h"
 #include "Player/RPPlayerState.h"
+#include "Animations/RPANS_JumpSection.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ARPHeroCharacter::ARPHeroCharacter(const class FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -42,6 +44,10 @@ ARPHeroCharacter::ARPHeroCharacter(const class FObjectInitializer& ObjectInitial
 	//GetMesh()->SetCollisionResponseToChannel(COLLISION_INTERACTABLE, ECollisionResponse::ECR_Overlap);
 	GetMesh()->bCastHiddenShadow = true;
 	GetMesh()->bReceivesDecals = false;
+
+	// Configure character movement
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 }
 
 void ARPHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -100,10 +106,14 @@ void ARPHeroCharacter::MoveForward(float Value)
 {
 	if (IsAlive())
 	{
-		FRotator RotationAroundZAxis = FRotator(0, GetControlRotation().Yaw, 0);
-		FVector ForwardVector = UKismetMathLibrary::GetForwardVector(RotationAroundZAxis);
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Direction, Value);
 		
-		AddMovementInput(ForwardVector, Value);
 	}
 }
 
@@ -111,10 +121,14 @@ void ARPHeroCharacter::MoveRight(float Value)
 {
 	if (IsAlive())
 	{
-		FRotator RotationAroundZAxis = FRotator(0, GetControlRotation().Yaw, 0);
-		FVector RightVector = UKismetMathLibrary::GetRightVector(RotationAroundZAxis);
+		// find out which way is right
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		AddMovementInput(RightVector, Value);
+		// get right vector 
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		// add movement in that direction
+		AddMovementInput(Direction, Value);
 	}
 }
 
@@ -175,7 +189,7 @@ void ARPHeroCharacter::PossessedBy(AController* NewController)
 		/** add character abilities*/
 		AddCharacterAbilities();
 
-		// TODO: Craete HUD
+		// TODO: Create HUD
 
 		// TODO:Set attribute on respawn
 
@@ -229,8 +243,6 @@ void ARPHeroCharacter::OnRep_Controller()
 	Super::OnRep_Controller();
 }
 
-
-
 void ARPHeroCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (AbilitySystemComponent != nullptr)
@@ -270,4 +282,51 @@ int32 ARPHeroCharacter::GetNumWeapons() const
 	return int32();
 }
 
+void ARPHeroCharacter::JumpSectionForCombo()
+{
+	UAnimInstance* AI = GetMesh()->GetAnimInstance();
+
+	if (AI && JumpSectionNs && bEnableComboPeriod)
+	{
+		// Get currently actived montage
+		UAnimMontage* CurrentMontage = AI->GetCurrentActiveMontage();
+
+		// get current section name
+		FName SectionNameToChange = AI->Montage_GetCurrentSection();
+
+		// Get the name of the next section
+		int32 MaxIndex = JumpSectionNs->JumpSections.Num();
+		FName NextSection = JumpSectionNs->JumpSections[0];
+
+		// FName SectionNameToChange, FName NextSection, const UAnimMontage* Montage
+		AI->Montage_SetNextSection(
+			SectionNameToChange, 
+			NextSection, 
+			CurrentMontage
+		);
+
+		bEnableComboPeriod = true;
+	}
+
+}
+
+void ARPHeroCharacter::SetHealth(float Health)
+{
+	Super::SetHealth(Health);
+}
+
+void ARPHeroCharacter::SetMana(float Mana)
+{
+	Super::SetMana(Mana);
+}
+
+void ARPHeroCharacter::SetStamina(float Stamina)
+{
+	Super::SetStamina(Stamina);
+}
+
+void ARPHeroCharacter::SetShield(float Shield)
+{
+	Super::SetShield(Shield);
+}
 

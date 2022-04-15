@@ -7,6 +7,9 @@
 #include "Characters/Abilities/AttributeSets/RPAttributeSetBase.h"
 #include "Characters/Abilities/RPGameplayAbility.h"
 
+#include "AbilitySystemGlobals.h"
+
+
 // Sets default values
 ARPCharacterBase::ARPCharacterBase(const class FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer.SetDefaultSubobjectClass<URPCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -329,5 +332,13 @@ void ARPCharacterBase::SetShield(float Shield)
 	if (IsValid(AttributeSetBase))
 	{
 		return AttributeSetBase->SetHealth(Shield);
+	}
+}
+
+void ARPCharacterBase::GetActiveAbilitiesWithTags(FGameplayTagContainer AbilityTags, TArray<URPGameplayAbility*>& ActiveAbilities)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->GetActiveAbilitiesWithTags(AbilityTags, ActiveAbilities);
 	}
 }

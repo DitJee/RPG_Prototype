@@ -6,12 +6,14 @@
 #include "AbilitySystemInterface.h"
 
 #include "RPGPROT/RPGPROT.h"
+#include "GameplayTagContainer.h"
 
 // Default include
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "RPCharacterBase.generated.h"
 
+class URPGameplayAbility;
 /**
   The base Character class for the game. 
 
@@ -84,6 +86,10 @@ public:
 	// Gets the Base value of MoveSpeed
 	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter|Attributes")
 		float GetMoveSpeedBaseValue() const;
+
+	/** Returns a list of active abilities matching the specified tags. This only returns if the ability is currently running */
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		void GetActiveAbilitiesWithTags(FGameplayTagContainer AbilityTags, TArray<URPGameplayAbility*>& ActiveAbilities);
 
 protected:
 

@@ -4,6 +4,7 @@
 #include "Player/RPPlayerController.h"
 #include "Player/RPPlayerState.h"
 #include "Characters/Abilities/RPAbilitySystemComponent.h"
+#include "UI/RPHUDBase.h"
 
 void ARPPlayerController::OnPossess(APawn* InPawn)
 {
@@ -13,7 +14,21 @@ void ARPPlayerController::OnPossess(APawn* InPawn)
 
 	if (PS)
 	{
-		// TODO init ability actor info
+		// initialize actor's info
 		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, InPawn);
+
+		/** 
+			Get the HUD and initialize the attributes
+		*/
+		ARPHUDBase* UIHUD = Cast<ARPHUDBase>(GetHUD());
+
+		if (UIHUD)
+		{
+			UIHUD->SetUIHUDAttributes(PS);
+
+			// show the UI HUD
+			UIHUD->ShowUIHUD(true);
+		}
+
 	}
 }

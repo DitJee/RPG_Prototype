@@ -69,6 +69,16 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "RPGPROT|RPHeroCharacter")
 		TSubclassOf<UGameplayEffect> DeathEffect;
 
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "RPGPROT | RPHeroCharacter | Combo")
+		bool bEnableComboPeriod = true;
+
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "RPGPROT | RPHeroCharacter | Combo")
+		const class URPANS_JumpSection* JumpSectionNs;
+
+	UFUNCTION(BlueprintCallable, Category = "RPGPROT | RPHeroCharacter | Combo")
+		void JumpSectionForCombo();
+
+
 	/** Cache tags */
 	FGameplayTag NoWeaponTag;
 	FGameplayTag WeaponChangingDelayReplicationTag;
@@ -115,4 +125,9 @@ public:
 
 	void SetPerspective();
 
+
+	virtual void SetHealth(float Health) override;
+	virtual void SetMana(float Mana) override;
+	virtual void SetStamina(float Stamina) override;
+	virtual void SetShield(float Shield) override;
 };

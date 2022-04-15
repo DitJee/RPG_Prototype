@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "RPAbilitySystemComponent.generated.h"
 
+class URPGameplayAbility;
 /**
  * 
  */
@@ -19,4 +20,7 @@ public:
 	bool bStartupEffectsApplied = false;
 
 	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
+
+	/** Returns a list of currently active ability instances that match the tags */
+	void GetActiveAbilitiesWithTags(const FGameplayTagContainer& GameplayTagContainer, TArray<URPGameplayAbility*>& ActiveAbilities);
 };

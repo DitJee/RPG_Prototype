@@ -56,7 +56,7 @@ void URPGA_CharacterSprint::ActivateAbility(const FGameplayAbilitySpecHandle Han
 			CMC->StartSprinting();
 
 			/**
-			* While the player is sprinting, consume the attributes
+				While the player is sprinting, consume the attributes
 			*/
 			
 			WaitInputReleaseClass = UAbilityTask_WaitInputRelease::WaitInputRelease(this, true);
