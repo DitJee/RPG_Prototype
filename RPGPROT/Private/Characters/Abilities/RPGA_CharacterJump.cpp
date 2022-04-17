@@ -9,7 +9,7 @@ URPGA_CharacterJump::URPGA_CharacterJump()
 {
 	AbilityID = ERPAbilityInputID::Jump;
 	AbilityInputID = ERPAbilityInputID::Jump;
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Jump")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Jump")));
 }
@@ -19,7 +19,7 @@ void URPGA_CharacterJump::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
 	{
 		/** Commit the cost upfront*/
-		bool bIsSuccess = CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+		bool bIsSuccess = K2_CommitAbilityCost(false);
 
 		if (!bIsSuccess)
 		{

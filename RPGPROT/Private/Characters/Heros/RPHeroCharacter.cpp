@@ -3,6 +3,7 @@
 
 #include "Characters/Heros/RPHeroCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include <Runtime/Engine/Classes/Kismet/KismetMathLibrary.h>
 #include "Characters/Abilities/RPAbilitySystemComponent.h"
@@ -10,6 +11,8 @@
 #include "Player/RPPlayerState.h"
 #include "Animations/RPANS_JumpSection.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Weapons/RPWeaponBase.h"
+#include "Engine/EngineTypes.h"
 
 ARPHeroCharacter::ARPHeroCharacter(const class FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -36,14 +39,11 @@ ARPHeroCharacter::ARPHeroCharacter(const class FObjectInitializer& ObjectInitial
 	ThirdPersonCamera->FieldOfView = Default3PFOV;
 
 	/** Mesh Component Setup*/
-	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPose;
+	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionProfileName(FName("NoCollision"));
 
-	// TODO: Setup collision channel
-	//GetMesh()->SetCollisionResponseToChannel(COLLISION_INTERACTABLE, ECollisionResponse::ECR_Overlap);
-	GetMesh()->bCastHiddenShadow = true;
-	GetMesh()->bReceivesDecals = false;
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
@@ -154,6 +154,39 @@ void ARPHeroCharacter::BindASCInput()
 void ARPHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	return;
+
+	// attach starting weapon to ourselves
+	if (StartingWeapon)
+	{
+
+		ARPWeaponBase* Weapon = GetWorld()->SpawnActor<ARPWeaponBase>(
+			StartingWeapon,
+			FTransform(
+
+			)
+			);
+
+		if (Weapon)
+		{
+			FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(
+				EAttachmentRule::SnapToTarget,
+				EAttachmentRule::SnapToTarget,
+				EAttachmentRule::KeepWorld,
+				true
+			);
+
+			// (AActor* ParentActor, const FAttachmentTransformRules& AttachmentRules, FName SocketName)
+			Weapon->K2_AttachRootComponentTo(
+				GetMesh(),
+				WeaponAttachPoint,
+				EAttachLocation::SnapToTarget,
+				true
+			);
+		}
+		
+	}
 }
 
 void ARPHeroCharacter::PossessedBy(AController* NewController)

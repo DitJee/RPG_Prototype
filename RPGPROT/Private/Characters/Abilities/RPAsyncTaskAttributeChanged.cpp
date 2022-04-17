@@ -63,13 +63,11 @@ void URPAsyncTaskAttributeChanged::AttributeChanged(const FOnAttributeChangeData
 
 void URPAsyncTaskAttributeChanged::EndTask()
 {
-	if (IsValid(ASC))
+	if (ASC)
 	{
-		// remove all bindings 
-		if (AttributeToListenFor.IsValid())
-		{
-			ASC->GetGameplayAttributeValueChangeDelegate(AttributeToListenFor).RemoveAll(this);
-		}
+		
+		ASC->GetGameplayAttributeValueChangeDelegate(AttributeToListenFor).RemoveAll(this);
+		
 
 		if (AttributesToListenFor.Num() > 0)
 		{
@@ -81,12 +79,8 @@ void URPAsyncTaskAttributeChanged::EndTask()
 		
 	}
 
-	// destroy task
-	if (this)
-	{
-		SetReadyToDestroy();
-		MarkAsGarbage();
-	}
+	SetReadyToDestroy();
+	MarkAsGarbage();
 	
 }
 

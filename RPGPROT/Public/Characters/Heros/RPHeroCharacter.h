@@ -7,7 +7,7 @@
 #include "Characters/RPCharacterBase.h"
 #include "RPHeroCharacter.generated.h"
 
-
+class ARPWeaponBase;
 /**
  * 
  */
@@ -78,6 +78,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "RPGPROT | RPHeroCharacter | Combo")
 		void JumpSectionForCombo();
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "RPGPROT | RPHeroCharacter | Weapon")
+		TSubclassOf<ARPWeaponBase> StartingWeapon;
 
 	/** Cache tags */
 	FGameplayTag NoWeaponTag;

@@ -73,12 +73,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter|Attributes")
 		float GetMaxStamina() const;
 
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter|Attributes")
-		float GetShield() const;
-
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter|Attributes")
-		float GetMaxShield() const;
-
 	// Gets the Current value of MoveSpeed
 	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter|Attributes")
 		float GetMoveSpeed() const;

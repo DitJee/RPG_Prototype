@@ -35,8 +35,8 @@ ARPPlayerState::ARPPlayerState()
 	*/
 	NetUpdateFrequency = 100.f;
 
-	/*DeadTag = FGameplayTag::RequestGameplayTag("State.Dead");
-	KnockedDownTag = FGameplayTag::RequestGameplayTag("State.KnockedDown");*/
+	DeadTag = FGameplayTag::RequestGameplayTag("State.Dead");
+	KnockedDownTag = FGameplayTag::RequestGameplayTag("State.KnockedDown");
 
 }
 
@@ -49,9 +49,12 @@ void ARPPlayerState::BeginPlay()
 		/** 
 			Get Attribute change delegate and bind it to OnChange function
 		*/
-		 FOnGameplayAttributeValueChange OnValueChangeHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute());
+		 FOnGameplayAttributeValueChange OnHealthChangeHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute());
+		 FOnGameplayAttributeValueChange OnHealthRegenRateChangeHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthRegenRateAttribute());
 
-		 HealthChangedDelegateHandle = OnValueChangeHandle.AddUObject(this, &ARPPlayerState::HealthChanged);
+		 HealthChangedDelegateHandle = OnHealthChangeHandle.AddUObject(this, &ARPPlayerState::HealthChanged);
+		 HealthRegenRateChangedDelegateHandle = OnHealthRegenRateChangeHandle.AddUObject(this, &ARPPlayerState::HealthRegenRateChanged);
+
 
 		 /**
 			Get tag change delegate and bind it to OnChange function
@@ -64,10 +67,17 @@ void ARPPlayerState::BeginPlay()
 
 void ARPPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 {
+	// TODO: floating UI
+}
+
+void ARPPlayerState::HealthRegenRateChanged(const FOnAttributeChangeData& Data)
+{
+	// TODO: floating UI
 }
 
 void ARPPlayerState::KnockDownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
+	// TODO: KnockDownStage
 }
 
 UAbilitySystemComponent* ARPPlayerState::GetAbilitySystemComponent() const
@@ -165,36 +175,6 @@ float ARPPlayerState::GetStaminaRegenRate() const
 	if (IsValid(AttributeSetBase))
 	{
 		return AttributeSetBase->GetStaminaRegenRate();
-	}
-
-	return 0.0f;
-}
-
-float ARPPlayerState::GetShield() const
-{
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->GetShield();
-	}
-
-	return 0.0f;
-}
-
-float ARPPlayerState::GetMaxShield() const
-{
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->GetMaxShield();
-	}
-
-	return 0.0f;
-}
-
-float ARPPlayerState::GetShieldRegenRate() const
-{
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->GetShieldRegenRate();
 	}
 
 	return 0.0f;

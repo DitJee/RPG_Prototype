@@ -161,7 +161,7 @@ void ARPCharacterBase::AddStartupEffects()
 {
 	/** check for validity */
 	if (
-		GetLocalRole() == ROLE_Authority ||
+		GetLocalRole() != ROLE_Authority ||
 		!IsValid(AbilitySystemComponent) ||
 		AbilitySystemComponent->bStartupEffectsApplied
 		)
@@ -254,26 +254,6 @@ float ARPCharacterBase::GetMaxStamina() const
 	{
 		return AttributeSetBase->GetMaxStamina();
 	}
-	return 0.0f;
-}
-
-float ARPCharacterBase::GetShield() const
-{
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->GetShield();
-	}
-
-	return 0.0f;
-}
-
-float ARPCharacterBase::GetMaxShield() const
-{
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->GetMaxShield();
-	}
-
 	return 0.0f;
 }
 

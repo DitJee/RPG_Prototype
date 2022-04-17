@@ -168,23 +168,10 @@ void URPAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 				);
 			}
 
-			/**
-			*	Apply the damage to the shield first if exists
-			*/
-			const float OldShield = GetShield();
-			float DamageAfterShield = LocalDamageDone - OldShield;
-			if (OldShield > 0)
-			{
-				float NewShield = OldShield - LocalDamageDone;
-				SetShield(FMath::Clamp<float>(NewShield, 0.0f, GetMaxShield()));
-			}
-
-			if (DamageAfterShield > 0)
-			{
-				// Apply the health change and then clamp it
-				const float NewHealth = GetHealth() - DamageAfterShield;
-				SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
-			}
+			// Apply the health change and then clamp it
+			const float NewHealth = GetHealth() - LocalDamageDone;
+			SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
+			
 
 			if (TargetCharacter && WasAlive)
 			{
@@ -195,6 +182,8 @@ void URPAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 					*GetOwningActor()->GetName(),
 					LocalDamageDone
 				);
+
+				// TODO: Hit Reaction
 
 				// Show damage number for the Source player unless it was self damage
 				if (SourceActor != TargetActor)
@@ -208,37 +197,30 @@ void URPAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 				}
 			}
 		}
-		else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
-		{
-			/**
-				Handle other health changes.
-				Health loss should go through Damage.
-			*/
+	}
+	else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		/**
+			Handle other health changes.
+			Health loss should go through Damage.
+		*/
 
-			SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
-		}
-		else if (Data.EvaluatedData.Attribute == GetManaAttribute())
-		{
-			/**
-				Handle mana changes.
-			*/
+		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+	}
+	else if (Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		/**
+			Handle mana changes.
+		*/
 
-			SetMana(FMath::Clamp(GetMana(), 0.0f, GetMaxMana()));
-		}
-		else if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
-		{
-			/**
-				Handle stamina changes.
-			*/
-			SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
-		}
-		else if (Data.EvaluatedData.Attribute == GetShieldAttribute())
-		{
-			/**
-				Handle shield changes.
-			*/
-			SetShield(FMath::Clamp(GetShield(), 0.0f, GetMaxShield()));
-		}
+		SetMana(FMath::Clamp(GetMana(), 0.0f, GetMaxMana()));
+	}
+	else if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+	{
+		/**
+			Handle stamina changes.
+		*/
+		SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
 	}
 
 }
@@ -255,9 +237,6 @@ void URPAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, Stamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, MaxStamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, StaminaRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, Shield, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, MaxShield, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, ShieldRegenRate, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, Armor, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, MoveSpeed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(URPAttributeSetBase, CharacterLevel, COND_None, REPNOTIFY_Always);
@@ -310,21 +289,6 @@ void URPAttributeSetBase::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxS
 void URPAttributeSetBase::OnRep_StaminaRegenRate(const FGameplayAttributeData& OldStaminaRegenRate)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(URPAttributeSetBase, StaminaRegenRate, OldStaminaRegenRate);
-}
-
-void URPAttributeSetBase::OnRep_Shield(const FGameplayAttributeData& OldShield)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(URPAttributeSetBase, Shield, OldShield);
-}
-
-void URPAttributeSetBase::OnRep_MaxShield(const FGameplayAttributeData& OldMaxShield)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(URPAttributeSetBase, MaxShield, OldMaxShield);
-}
-
-void URPAttributeSetBase::OnRep_ShieldRegenRate(const FGameplayAttributeData& OldShieldRegenRate)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(URPAttributeSetBase, ShieldRegenRate, OldShieldRegenRate);
 }
 
 void URPAttributeSetBase::OnRep_Armor(const FGameplayAttributeData& OldArmor)

@@ -28,3 +28,8 @@ void URPAbilitySystemComponent::GetActiveAbilitiesWithTags(const FGameplayTagCon
 		}
 	}
 }
+
+void URPAbilitySystemComponent::ReceiveDamage(URPAbilitySystemComponent* SourceASC, float UnmitigatedDamage, float MitigatedDamage)
+{
+	ReceivedDamage.Broadcast(SourceASC, UnmitigatedDamage, MitigatedDamage);
+}

@@ -58,15 +58,6 @@ public:
 		float GetStaminaRegenRate() const;
 
 	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPPlayerState|Attributes")
-		float GetShield() const;
-
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPPlayerState|Attributes")
-		float GetMaxShield() const;
-
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPPlayerState|Attributes")
-		float GetShieldRegenRate() const;
-
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPPlayerState|Attributes")
 		float GetArmor() const;
 
 	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPPlayerState|Attributes")
@@ -99,12 +90,24 @@ protected:
 
 	/** Attribute changed delegate handles */
 	FDelegateHandle HealthChangedDelegateHandle;
+	FDelegateHandle MaxHealthChangedDelegateHandle;
+	FDelegateHandle HealthRegenRateChangedDelegateHandle;
+	FDelegateHandle ManaChangedDelegateHandle;
+	FDelegateHandle MaxManaChangedDelegateHandle;
+	FDelegateHandle ManaRegenRateChangedDelegateHandle;
+	FDelegateHandle StaminaChangedDelegateHandle;
+	FDelegateHandle MaxStaminaChangedDelegateHandle;
+	FDelegateHandle StaminaRegenRateChangedDelegateHandle;
+	FDelegateHandle XPChangedDelegateHandle;
+	FDelegateHandle GoldChangedDelegateHandle;
+	FDelegateHandle CharacterLevelChangedDelegateHandle;
 
 	/** Called when the game starts or when spawned */
 	virtual void BeginPlay() override;
 
 	/** Attribute changed callbacks */
 	virtual void HealthChanged(const FOnAttributeChangeData& Data);
+	virtual void HealthRegenRateChanged(const FOnAttributeChangeData& Data);
 
 	/** Tag changed callbacks */
 	virtual void KnockDownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);

@@ -72,21 +72,6 @@ public:
 		FGameplayAttributeData StaminaRegenRate;
 	ATTRIBUTE_ACCESSORS(URPAttributeSetBase, StaminaRegenRate)
 
-		// Current shield acts like temporary health. When depleted, damage will drain regular health.
-		UPROPERTY(BlueprintReadOnly, Category = "Shield", ReplicatedUsing = OnRep_Shield)
-		FGameplayAttributeData Shield;
-	ATTRIBUTE_ACCESSORS(URPAttributeSetBase, Shield)
-
-		// Maximum shield that we can have.
-		UPROPERTY(BlueprintReadOnly, Category = "Shield", ReplicatedUsing = OnRep_MaxShield)
-		FGameplayAttributeData MaxShield;
-	ATTRIBUTE_ACCESSORS(URPAttributeSetBase, MaxShield)
-
-		// Shield regen rate will passively increase Shield every second
-		UPROPERTY(BlueprintReadOnly, Category = "Shield", ReplicatedUsing = OnRep_ShieldRegenRate)
-		FGameplayAttributeData ShieldRegenRate;
-	ATTRIBUTE_ACCESSORS(URPAttributeSetBase, ShieldRegenRate)
-
 		// Armor reduces the amount of damage done by attackers
 		UPROPERTY(BlueprintReadOnly, Category = "Armor", ReplicatedUsing = OnRep_Armor)
 		FGameplayAttributeData Armor;
@@ -167,15 +152,6 @@ protected:
 
 	UFUNCTION()
 		virtual void OnRep_StaminaRegenRate(const FGameplayAttributeData& OldStaminaRegenRate);
-
-	UFUNCTION()
-		virtual void OnRep_Shield(const FGameplayAttributeData& OldShield);
-
-	UFUNCTION()
-		virtual void OnRep_MaxShield(const FGameplayAttributeData& OldMaxShield);
-
-	UFUNCTION()
-		virtual void OnRep_ShieldRegenRate(const FGameplayAttributeData& OldShieldRegenRate);
 
 	UFUNCTION()
 		virtual void OnRep_Armor(const FGameplayAttributeData& OldArmor);
