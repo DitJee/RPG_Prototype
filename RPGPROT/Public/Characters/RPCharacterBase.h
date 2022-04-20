@@ -2,16 +2,20 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+
 // GAS includes
 #include "AbilitySystemInterface.h"
 
 #include "RPGPROT/RPGPROT.h"
 #include "GameplayTagContainer.h"
 
-// Default include
-#include "CoreMinimal.h"
+
 #include "GameFramework/Character.h"
 #include "RPCharacterBase.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterBaseHitReactDelegate, ERPHitReactDirection, Direction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDiedDelegate, ARPCharacterBase*, Character);
 
 class URPGameplayAbility;
 /**
@@ -33,6 +37,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter")
 		virtual bool IsAlive() const;
+
+	virtual void Die();
+
+	virtual void FinishDying();
 
 	/** Implement IAbilitySystemInterface */
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -85,6 +93,41 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		void GetActiveAbilitiesWithTags(FGameplayTagContainer AbilityTags, TArray<URPGameplayAbility*>& ActiveAbilities);
 
+	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPCharacter|Animation")
+		ERPHitReactDirection GetHitReactDirection(const FVector& ImpactPoint);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = "RPGPROT|RPCharacter|Animation")
+		virtual void PlayHitReact(FGameplayTag HitDirection, AActor* DamageCauser);
+
+	virtual void PlayHitReact_Implementation(FGameplayTag HitDirection, AActor* DamageCauser);
+	virtual bool PlayHitReact_Validate(FGameplayTag HitDirection, AActor* DamageCauser);
+
+public:
+	/**
+	*	Cached Hit Reaction Tag
+	*/
+	FGameplayTag HitDirectionFrontTag;
+	FGameplayTag HitDirectionBackTag;
+	FGameplayTag HitDirectionRightTag;
+	FGameplayTag HitDirectionLeftTag;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RPGPROT|RPCharacter|Weapon")
+		class ARPWeaponBase* CurrentWeapon;
+
+	FGameplayTag DeadTag;
+	FGameplayTag EffectRemoveOnDeathTag;
+
+	// Set the Hit React direction in the Animation Blueprint
+	UPROPERTY(BlueprintAssignable, Category = "RPGPROT|RPCharacter")
+		FCharacterBaseHitReactDelegate ShowHitReact;
+
+	UPROPERTY(BlueprintAssignable, Category = "RPGPROT|RPCharacter")
+		FCharacterDiedDelegate OnCharacterDied;
+
+	// Death Animation
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "RPGPROT|RPCharacter|Animation")
+		UAnimMontage* DeathMontage;
+
 protected:
 
 	/** 
@@ -118,11 +161,11 @@ protected:
 		Default attributes for a character for initializing on spawn / respawn.
 		This is an instant GE that overrides the values for attributes that get reset on spawn/respawn.
 	*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|Abilities")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|RPCharacter|Abilities")
 		TSubclassOf<class UGameplayEffect> DefaultAttributes;
 
 	/**These effects are only applied one time on startup*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|Abilities")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "RPGPROT|RPCharacter|Abilities")
 		TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
 
 	/** 
@@ -160,5 +203,4 @@ protected:
 	virtual void SetHealth(float Health);
 	virtual void SetMana(float Mana);
 	virtual void SetStamina(float Stamina);
-	virtual void SetShield(float Shield);
 };

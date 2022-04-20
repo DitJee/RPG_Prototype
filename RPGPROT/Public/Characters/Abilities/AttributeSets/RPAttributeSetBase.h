@@ -24,6 +24,13 @@ class RPGPROT_API URPAttributeSetBase : public UAttributeSet
 	URPAttributeSetBase();
 
 public:
+	/**
+	*	Cached Hit Reaction Tag
+	*/
+	FGameplayTag HitDirectionFrontTag;
+	FGameplayTag HitDirectionBackTag;
+	FGameplayTag HitDirectionRightTag;
+	FGameplayTag HitDirectionLeftTag;
 
 	// Current Health, when 0 we expect owner to die unless prevented by an ability. Capped by MaxHealth.
 	// Positive changes can directly use this.

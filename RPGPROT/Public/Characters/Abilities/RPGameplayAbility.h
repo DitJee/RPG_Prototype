@@ -2,10 +2,14 @@
 
 #pragma once
 
+
+#include "CoreMinimal.h"
+
 // GAS input enum
 #include "RPGPROT/RPGPROT.h"
 
-#include "CoreMinimal.h"
+
+
 #include "Abilities/GameplayAbility.h"
 #include "RPGameplayAbility.generated.h"
 

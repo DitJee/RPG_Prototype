@@ -24,3 +24,13 @@ enum class ERPAbilityInputID : uint8
 	Dodge				UMETA(DisplayName = "Dodge")
 	
 };
+
+UENUM(BlueprintType)
+enum class ERPHitReactDirection : uint8
+{
+	None	UMETA(DisplayName = "None"),
+	Left	UMETA(DisplayName = "Left"),
+	Right	UMETA(DisplayName = "Right"),
+	Front	UMETA(DisplayName = "Front"),
+	Back	UMETA(DisplayName = "Back")
+};

@@ -1,10 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
+
+
+#include "CoreMinimal.h"
+
 #include "AbilitySystemInterface.h"
 #include <GameplayEffectTypes.h>
 
-#include "CoreMinimal.h"
+
 #include "GameFramework/PlayerState.h"
 #include "RPPlayerState.generated.h"
 
@@ -25,6 +29,9 @@ public:
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	class URPAttributeSetBase* GetAttributeSetBase() const;
+
+	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPPlayerState")
+		bool IsAlive() const;
 
 	/**
 	* Getters for attributes from GDAttributeSetBase. Returns Current Value unless otherwise specified.
@@ -107,7 +114,17 @@ protected:
 
 	/** Attribute changed callbacks */
 	virtual void HealthChanged(const FOnAttributeChangeData& Data);
+	virtual void MaxHealthChanged(const FOnAttributeChangeData& Data);
 	virtual void HealthRegenRateChanged(const FOnAttributeChangeData& Data);
+
+	virtual void ManaChanged(const FOnAttributeChangeData& Data);
+	virtual void MaxManaChanged(const FOnAttributeChangeData& Data);
+	virtual void ManaRegenRateChanged(const FOnAttributeChangeData& Data);
+
+	virtual void StaminaChanged(const FOnAttributeChangeData& Data);
+	virtual void MaxStaminaChanged(const FOnAttributeChangeData& Data);
+	virtual void StaminaRegenRateChanged(const FOnAttributeChangeData& Data);
+
 
 	/** Tag changed callbacks */
 	virtual void KnockDownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);

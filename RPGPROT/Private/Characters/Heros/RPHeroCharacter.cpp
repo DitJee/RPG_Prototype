@@ -14,6 +14,13 @@
 #include "Weapons/RPWeaponBase.h"
 #include "Engine/EngineTypes.h"
 
+#include "UI/RP_FloatingStatusBarWidget.h"
+#include "Components/WidgetComponent.h"
+#include "Player/RPPlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "RPGameModeBase.h"
+
+
 ARPHeroCharacter::ARPHeroCharacter(const class FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
@@ -46,24 +53,18 @@ ARPHeroCharacter::ARPHeroCharacter(const class FObjectInitializer& ObjectInitial
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
-}
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
-void ARPHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	// Floating Status Bar
+	FloatingStatusBarComponent = CreateDefaultSubobject<UWidgetComponent>(FName("FloatingStatusBarComponent"));
+	FloatingStatusBarComponent->SetupAttachment(RootComponent);
+	FloatingStatusBarComponent->SetRelativeLocation(FVector(0, 0, 120));
+	FloatingStatusBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	FloatingStatusBarComponent->SetDrawSize(FVector2D(500, 500));
 
-	// TODO: Replicate the inventory
-
-	/** 
-		Replicate the weapon in simulate-only mode to only simulate to client. 
-		Then, it will be sync when the owner when it is ready
-	*/
-
-	// TODO: Replicate currentWeapon
-	//DOREPLIFETIME_CONDITION(ARPHeroCharacter, CurrentWeapon, COND_SimulatedOnly);
-
+	DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
+	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Effect.RemoveOnDeath"));
 }
 
 void ARPHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -154,38 +155,69 @@ void ARPHeroCharacter::BindASCInput()
 void ARPHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	return;
-
 	// attach starting weapon to ourselves
 	if (StartingWeapon)
 	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Instigator = this;
 
-		ARPWeaponBase* Weapon = GetWorld()->SpawnActor<ARPWeaponBase>(
+		CurrentWeapon = GetWorld()->SpawnActor<ARPWeaponBase>(
 			StartingWeapon,
-			FTransform(
-
-			)
+			SpawnParams
 			);
 
-		if (Weapon)
+		CurrentWeapon->AttachToComponent(
+			GetMesh(),
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			WeaponAttachPoint
+		);
+
+		CurrentWeaponTag = FGameplayTag::RequestGameplayTag(FName("Weapon.Equipped.GreatSpear"));
+		/**
+			The weapon attachment happens in the Blueprint.
+		*/
+	}
+
+	/** Create floating status bar*/
+	InitializeFloatingStatusBar();
+
+	/* Set status bar rotation*/
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().SetTimer(
+			StatusBarRotationHandle,
+			this,
+			&ARPHeroCharacter::RotateStatusBar,
+			0.05f,
+			true
+		);
+	}
+
+	/* camera setting*/
+	bUseControllerRotationYaw = false;
+	ThirdPersonCameraBoom->SetRelativeLocation(
+		FVector(0.0f,0.0f, 100.0f)
+	);
+}
+
+void ARPHeroCharacter::RotateStatusBar()
+{
+	if (FloatingStatusBarComponent)
+	{
+		FVector StatusBarWorldLocation = FloatingStatusBarComponent->GetComponentLocation();
+		APlayerCameraManager* CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+
+		FVector CameraWorldLocation;
+		if (CameraManager)
 		{
-			FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(
-				EAttachmentRule::SnapToTarget,
-				EAttachmentRule::SnapToTarget,
-				EAttachmentRule::KeepWorld,
-				true
-			);
-
-			// (AActor* ParentActor, const FAttachmentTransformRules& AttachmentRules, FName SocketName)
-			Weapon->K2_AttachRootComponentTo(
-				GetMesh(),
-				WeaponAttachPoint,
-				EAttachLocation::SnapToTarget,
-				true
-			);
+			CameraWorldLocation = CameraManager->GetCameraLocation();
 		}
+
+		FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(StatusBarWorldLocation, CameraWorldLocation);
 		
+		FloatingStatusBarComponent->SetWorldRotation(NewRotation);
+
 	}
 }
 
@@ -216,17 +248,29 @@ void ARPHeroCharacter::PossessedBy(AController* NewController)
 		/** initialize Attribute */
 		InitializeAttributes();
 
+		// Forcibly set the DeadTag count to 0
+		AbilitySystemComponent->SetTagMapCount(DeadTag, 0);
+
+		// Set Health/Mana/Stamina to their max. This is only necessary for *Respawn*.
+		SetHealth(GetMaxHealth());
+		SetMana(GetMaxMana());
+		SetStamina(GetMaxStamina());
+
 		/** add startup gameEffect*/
 		AddStartupEffects();
 
 		/** add character abilities*/
 		AddCharacterAbilities();
 
-		// TODO: Create HUD
+		/** Create HUD*/
+		ARPPlayerController* PC = Cast<ARPPlayerController>(GetController());
+		if (PC)
+		{
+			PC->CreateHUD();
+		}
 
-		// TODO:Set attribute on respawn
-
-		// TODO: Remove Dead Tag
+		/** Create floating status bar*/
+		InitializeFloatingStatusBar();
 
 	}
 
@@ -236,7 +280,6 @@ void ARPHeroCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// TODO: Spawn inventory
 }
 
 void ARPHeroCharacter::OnRep_PlayerState()
@@ -262,18 +305,64 @@ void ARPHeroCharacter::OnRep_PlayerState()
 
 		InitializeAttributes();
 		
-		// TODO: Create HUD
+		/** Create HUD*/
+		ARPPlayerController* PC = Cast<ARPPlayerController>(GetController());
+		if (PC)
+		{
+			PC->CreateHUD();
+		}
 
-		// TODO: Weapon setup
+		/** Create floating status bar*/
+		InitializeFloatingStatusBar();
 
-		// TODO: Respawn attribute setting 
+		/**
+		* Respawn specific things that won't affect first possession.
+		*/
+		
+		// Forcibly set the DeadTag count to 0
+		AbilitySystemComponent->SetTagMapCount(DeadTag, 0);
+
+		//  Set Health/Mana/Stamina to their max. This is only necessary for *Respawn*.
+		SetHealth(GetMaxHealth());
+		SetMana(GetMaxMana());
+		SetStamina(GetMaxStamina());
 
 	}
 }
 
-void ARPHeroCharacter::OnRep_Controller()
+
+void ARPHeroCharacter::InitializeFloatingStatusBar()
 {
-	Super::OnRep_Controller();
+	// validity check and create only once
+	if (FloatingStatusBar || AbilitySystemComponent == nullptr)
+	{
+		return;
+	}
+
+	// Get Player controller
+	ARPPlayerController* PC = Cast<ARPPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
+	if (PC && PC->IsLocalController())
+	{
+		if (FloatingStatusBarWidget)
+		{
+			FloatingStatusBar = CreateWidget<URP_FloatingStatusBarWidget>(PC, FloatingStatusBarWidget);
+
+			if (FloatingStatusBar && FloatingStatusBarComponent)
+			{
+				/**
+					Attach the newly created widget to actor's widget component
+				*/
+				FloatingStatusBarComponent->SetWidget(FloatingStatusBar);
+
+				/** Set attribute bars*/
+				FloatingStatusBar->SetHealthPercentage(GetHealth() / GetMaxHealth());
+				FloatingStatusBar->SetStaminaPercentage(GetStamina() / GetMaxStamina());
+				FloatingStatusBar->SetCharacterName(CharacterName);
+			}
+		}
+		
+	}
 }
 
 void ARPHeroCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -284,7 +373,7 @@ void ARPHeroCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 		CurrentWeaponTag = NoWeaponTag;
 
-		AbilitySystemComponent->AddLooseGameplayTag(CurrentWeaponTag);
+		//AbilitySystemComponent->AddLooseGameplayTag(CurrentWeaponTag);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -299,15 +388,17 @@ void ARPHeroCharacter::OnAbilityActivationFailed(const UGameplayAbility* FailedA
 
 void ARPHeroCharacter::KnockDown()
 {
+	// TODO:
 }
 
 void ARPHeroCharacter::PlayKnockDownEffects()
 {
+	// TODO:
 }
 
 FName ARPHeroCharacter::GetWeaponAttachPoint()
 {
-	return FName();
+	return WeaponAttachPoint;
 }
 
 int32 ARPHeroCharacter::GetNumWeapons() const
@@ -358,8 +449,19 @@ void ARPHeroCharacter::SetStamina(float Stamina)
 	Super::SetStamina(Stamina);
 }
 
-void ARPHeroCharacter::SetShield(float Shield)
+void ARPHeroCharacter::FinishDying()
 {
-	Super::SetShield(Shield);
+	ARPGameModeBase* GM = Cast<ARPGameModeBase>(GetWorld()->GetAuthGameMode());
+
+	if (GM)
+	{
+		GM->HeroDied(GetController());
+	}
+	
+	Super::FinishDying();
 }
 
+URP_FloatingStatusBarWidget* ARPHeroCharacter::GetFloatingStatusBar()
+{
+	return FloatingStatusBar;
+}

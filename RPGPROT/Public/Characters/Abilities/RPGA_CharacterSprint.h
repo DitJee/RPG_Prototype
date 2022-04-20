@@ -1,9 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "GameplayEffectTypes.h"
 
 #include "CoreMinimal.h"
+
+#include "GameplayEffectTypes.h"
+
+
+
 #include "Characters/Abilities/RPGameplayAbility.h"
 #include "RPGA_CharacterSprint.generated.h"
 

@@ -31,7 +31,7 @@ public:
 
 	// You must call this function manually when you want the AsyncTask to end.
 	// For UMG Widgets, you would call it in the Widget's Destruct event.
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 		void EndTask();
 
 protected:

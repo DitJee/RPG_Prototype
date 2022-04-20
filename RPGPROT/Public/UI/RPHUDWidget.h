@@ -1,9 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "AttributeSet.h"
+
 
 #include "CoreMinimal.h"
+
+#include "AttributeSet.h"
+
 #include "Blueprint/UserWidget.h"
 #include "RPHUDWidget.generated.h"
 
@@ -39,6 +42,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnyWhere, Category = "RPGPROT | RPHUDWidget | Attributes")
 		TArray<FGameplayAttribute> Attributes;
 
+	UPROPERTY(BlueprintReadOnly, EditAnyWhere, Category = "RPGPROT | RPHUDWidget | Tasks")
 	class URPAsyncTaskAttributeChanged* AsyncTaskAttributeChanged;
 
 	class URPAttributeSetBase* AttributeSetBase;

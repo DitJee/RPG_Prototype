@@ -6,9 +6,9 @@
 #include "Characters/Abilities/RPAbilitySystemComponent.h"
 #include "Characters/Abilities/AttributeSets/RPAttributeSetBase.h"
 #include "Characters/Abilities/RPGameplayAbility.h"
-
+#include "Components/CapsuleComponent.h"
 #include "AbilitySystemGlobals.h"
-
+#include "Weapons/RPWeaponBase.h"
 
 // Sets default values
 ARPCharacterBase::ARPCharacterBase(const class FObjectInitializer& ObjectInitializer)
@@ -17,6 +17,16 @@ ARPCharacterBase::ARPCharacterBase(const class FObjectInitializer& ObjectInitial
 
 	PrimaryActorTick.bCanEverTick = true;
 	bAlwaysRelevant = true;
+
+	// Cache tags
+	HitDirectionFrontTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Front"));
+	HitDirectionBackTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Back"));
+	HitDirectionRightTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Right"));
+	HitDirectionLeftTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Left"));
+
+	// Death Tags
+	DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
+	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Effect.RemoveOnDeath"));
 }
 
 // Called when the game starts or when spawned
@@ -81,11 +91,7 @@ void ARPCharacterBase::AddCharacterAbilities()
 void ARPCharacterBase::RemoveCharacterAbilities()
 {
 	/** check for validity */
-	if (
-		GetLocalRole() == ROLE_Authority ||
-		!IsValid(AbilitySystemComponent) ||
-		!AbilitySystemComponent->bCharacterAbilitiesGiven
-		)
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || !AbilitySystemComponent->bCharacterAbilitiesGiven)
 	{
 		return;
 	}
@@ -107,7 +113,7 @@ void ARPCharacterBase::RemoveCharacterAbilities()
 		}
 	}
 
-	// remvoe the abilty one-by-one
+	// remove the abilty one-by-one
 	for (const FGameplayAbilitySpecHandle& Ability : AbilitiesToRemove)
 	{
 		AbilitySystemComponent->ClearAbility(Ability);
@@ -119,6 +125,7 @@ void ARPCharacterBase::RemoveCharacterAbilities()
 
 int32 ARPCharacterBase::GetAbilityLevel(ERPAbilityInputID AbilityID) const
 {
+	// TODO
 	return 1;
 }
 
@@ -287,7 +294,7 @@ void ARPCharacterBase::SetHealth(float Health)
 {
 	if (IsValid(AttributeSetBase))
 	{
-		return AttributeSetBase->SetHealth(Health);
+		AttributeSetBase->SetHealth(Health);
 	}
 }
 
@@ -295,7 +302,7 @@ void ARPCharacterBase::SetMana(float Mana)
 {
 	if (IsValid(AttributeSetBase))
 	{
-		return AttributeSetBase->SetHealth(Mana);
+		AttributeSetBase->SetMana(Mana);
 	}
 }
 
@@ -303,15 +310,7 @@ void ARPCharacterBase::SetStamina(float Stamina)
 {
 	if (IsValid(AttributeSetBase))
 	{
-		return AttributeSetBase->SetHealth(Stamina);
-	}
-}
-
-void ARPCharacterBase::SetShield(float Shield)
-{
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->SetHealth(Shield);
+		AttributeSetBase->SetStamina(Stamina);
 	}
 }
 
@@ -321,4 +320,118 @@ void ARPCharacterBase::GetActiveAbilitiesWithTags(FGameplayTagContainer AbilityT
 	{
 		AbilitySystemComponent->GetActiveAbilitiesWithTags(AbilityTags, ActiveAbilities);
 	}
+}
+
+ERPHitReactDirection ARPCharacterBase::GetHitReactDirection(const FVector& ImpactPoint)
+{
+	const FVector& ActorLocation = GetActorLocation();
+	// PointPlaneDist is super cheap - 1 vector subtraction, 1 dot product.
+	float DistanceToFrontBackPlane = FVector::PointPlaneDist(ImpactPoint, ActorLocation, GetActorRightVector());
+	float DistanceToRightLeftPlane = FVector::PointPlaneDist(ImpactPoint, ActorLocation, GetActorForwardVector());
+
+
+	if (FMath::Abs(DistanceToFrontBackPlane) <= FMath::Abs(DistanceToRightLeftPlane))
+	{
+		// Determine if Front or Back
+
+		// Can see if it's left or right of Left/Right plane which would determine Front or Back
+		if (DistanceToRightLeftPlane >= 0)
+		{
+			return ERPHitReactDirection::Front;
+		}
+		else
+		{
+			return ERPHitReactDirection::Back;
+		}
+	}
+	else
+	{
+		// Determine if Right or Left
+
+		if (DistanceToFrontBackPlane >= 0)
+		{
+			return ERPHitReactDirection::Right;
+		}
+		else
+		{
+			return ERPHitReactDirection::Left;
+		}
+	}
+
+	return ERPHitReactDirection::Front;
+}
+
+void ARPCharacterBase::PlayHitReact_Implementation(FGameplayTag HitDirection, AActor* DamageCauser)
+{
+	if (IsAlive())
+	{
+		if (HitDirection == HitDirectionLeftTag)
+		{
+			ShowHitReact.Broadcast(ERPHitReactDirection::Left);
+		}
+		else if (HitDirection == HitDirectionFrontTag)
+		{
+			ShowHitReact.Broadcast(ERPHitReactDirection::Front);
+		}
+		else if (HitDirection == HitDirectionRightTag)
+		{
+			ShowHitReact.Broadcast(ERPHitReactDirection::Right);
+		}
+		else if (HitDirection == HitDirectionBackTag)
+		{
+			ShowHitReact.Broadcast(ERPHitReactDirection::Back);
+		}
+	}
+}
+
+bool ARPCharacterBase::PlayHitReact_Validate(FGameplayTag HitDirection, AActor* DamageCauser)
+{
+	return true;
+}
+
+void ARPCharacterBase::Die()
+{
+	// Only runs on Server
+	RemoveCharacterAbilities();
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->GravityScale = 0;
+	GetCharacterMovement()->Velocity = FVector(0);
+
+	OnCharacterDied.Broadcast(this);
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->CancelAllAbilities();
+
+		FGameplayTagContainer EffectTagsToRemove;
+		EffectTagsToRemove.AddTag(EffectRemoveOnDeathTag);
+		int32 NumEffectsRemoved = AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectTagsToRemove);
+
+		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+	}
+
+	if (DeathMontage)
+	{
+		// Play Death montage
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance != nullptr)
+		{
+			AnimInstance->Montage_Play(DeathMontage, 1.f);
+		}
+
+		// Drop weapon
+		CurrentWeapon->WeaponMesh->SetSimulatePhysics(true);
+		
+		FinishDying();
+	}
+	else
+	{
+		FinishDying();
+	}
+}
+
+void ARPCharacterBase::FinishDying()
+{
+	Destroy();
 }

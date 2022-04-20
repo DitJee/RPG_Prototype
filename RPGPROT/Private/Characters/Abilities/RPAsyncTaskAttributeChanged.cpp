@@ -44,7 +44,7 @@ URPAsyncTaskAttributeChanged* URPAsyncTaskAttributeChanged::ListenForAttributesC
 	WaitForAttributesChangedTask->ASC = AbilitySystemComponent;
 	WaitForAttributesChangedTask->AttributesToListenFor = Attributes;
 
-	for (FGameplayAttribute& Attribute : Attributes)
+	for (FGameplayAttribute Attribute : Attributes)
 	{
 		// bind attribute changes to AttributeChanged() of WaitForAttributeChangedTask
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute).AddUObject(
@@ -69,14 +69,11 @@ void URPAsyncTaskAttributeChanged::EndTask()
 		ASC->GetGameplayAttributeValueChangeDelegate(AttributeToListenFor).RemoveAll(this);
 		
 
-		if (AttributesToListenFor.Num() > 0)
+		for (FGameplayAttribute Attribute : AttributesToListenFor)
+
 		{
-			for (FGameplayAttribute& Attribute : AttributesToListenFor)
-			{
-				ASC->GetGameplayAttributeValueChangeDelegate(Attribute).RemoveAll(this);
-			}
+			ASC->GetGameplayAttributeValueChangeDelegate(Attribute).RemoveAll(this);
 		}
-		
 	}
 
 	SetReadyToDestroy();

@@ -9,7 +9,11 @@
 
 URPAttributeSetBase::URPAttributeSetBase()
 {
-
+	// Cache tags
+	HitDirectionFrontTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Front"));
+	HitDirectionBackTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Back"));
+	HitDirectionRightTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Right"));
+	HitDirectionLeftTag = FGameplayTag::RequestGameplayTag(FName("Effect.HitReact.Left"));
 }
 
 void URPAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -183,7 +187,40 @@ void URPAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 					LocalDamageDone
 				);
 
-				// TODO: Hit Reaction
+
+				/** 
+					Get Hit result to determine the hit direction
+				*/
+				const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
+				if (HitResult)
+				{
+					FVector ImpactVector = HitResult->Location;
+					ERPHitReactDirection HitDirection = TargetCharacter->GetHitReactDirection(ImpactVector);
+
+					switch (HitDirection)
+					{
+						case ERPHitReactDirection::None:
+							TargetCharacter->PlayHitReact(HitDirectionFrontTag, SourceCharacter);
+							break;
+						case ERPHitReactDirection::Left:
+							TargetCharacter->PlayHitReact(HitDirectionLeftTag, SourceCharacter);
+							break;
+						case ERPHitReactDirection::Right:
+							TargetCharacter->PlayHitReact(HitDirectionRightTag, SourceCharacter);
+							break;
+						case ERPHitReactDirection::Front:
+							TargetCharacter->PlayHitReact(HitDirectionFrontTag, SourceCharacter);
+							break;
+						case ERPHitReactDirection::Back:
+							TargetCharacter->PlayHitReact(HitDirectionBackTag, SourceCharacter);
+							break;
+					}
+				}
+				else
+				{
+					TargetCharacter->PlayHitReact(HitDirectionFrontTag, SourceCharacter);
+				}
+
 
 				// Show damage number for the Source player unless it was self damage
 				if (SourceActor != TargetActor)

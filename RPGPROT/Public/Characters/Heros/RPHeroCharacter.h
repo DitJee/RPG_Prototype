@@ -1,9 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include <GameplayEffectTypes.h>
+
 
 #include "CoreMinimal.h"
+
+
+#include <GameplayEffectTypes.h>
+
+
 #include "Characters/RPCharacterBase.h"
 #include "RPHeroCharacter.generated.h"
 
@@ -19,25 +24,6 @@ class RPGPROT_API ARPHeroCharacter : public ARPCharacterBase
 public:
 	
 	ARPHeroCharacter(const class FObjectInitializer& ObjectInitializer);
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	/** Called to bind functionality to input*/
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	/** Only called on the Server. Calls before Server's AcknowledgePossession.*/
-	virtual void PossessedBy(AController* NewController) override;
-
-	/** Server handles knockdown - cancel abilities, remove effects, activate knockdown ability*/
-	virtual void KnockDown();
-
-	/** Plays knockdown effects for all clients from KnockedDown tag listener on PlayerState*/
-	virtual void PlayKnockDownEffects();
-
-	FName GetWeaponAttachPoint();
-
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT|Inventory")
-		int32 GetNumWeapons() const;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "RPGPROT|Camera")
 		float BaseTurnRate = 45.0f;;
@@ -69,17 +55,28 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "RPGPROT|RPHeroCharacter")
 		TSubclassOf<UGameplayEffect> DeathEffect;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "RPGPROT | RPHeroCharacter | Combo")
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "RPGPROT|RPHeroCharacter|Combo")
 		bool bEnableComboPeriod = true;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "RPGPROT | RPHeroCharacter | Combo")
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "RPGPROT|RPHeroCharacter|Combo")
 		const class URPANS_JumpSection* JumpSectionNs;
 
-	UFUNCTION(BlueprintCallable, Category = "RPGPROT | RPHeroCharacter | Combo")
+	UFUNCTION(BlueprintCallable, Category = "RPGPROT|RPHeroCharacter|Combo")
 		void JumpSectionForCombo();
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "RPGPROT | RPHeroCharacter | Weapon")
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "RPGPROT|RPHeroCharacter|Weapon")
 		TSubclassOf<ARPWeaponBase> StartingWeapon;
+
+	UPROPERTY(BlueprintReadOnly, EditAnyWhere, Category = "RPGPROT|RPHeroCharacter|Widget")
+		TSubclassOf<class URP_FloatingStatusBarWidget> FloatingStatusBarWidget;
+
+	UPROPERTY()
+		class URP_FloatingStatusBarWidget* FloatingStatusBar;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "RPGPROT|RPHeroCharacter|Widget")
+		class UWidgetComponent* FloatingStatusBarComponent;
+
 
 	/** Cache tags */
 	FGameplayTag NoWeaponTag;
@@ -92,6 +89,32 @@ public:
 	FDelegateHandle WeaponChangingDelayReplicationTagChangedDelegateHandle;
 
 	bool bASCInputBound;
+
+	FTimerHandle StatusBarRotationHandle;
+
+public:
+
+	/** Called to bind functionality to input*/
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	/** Only called on the Server. Calls before Server's AcknowledgePossession.*/
+	virtual void PossessedBy(AController* NewController) override;
+
+	/** Server handles knockdown - cancel abilities, remove effects, activate knockdown ability*/
+	virtual void KnockDown();
+
+	/** Plays knockdown effects for all clients from KnockedDown tag listener on PlayerState*/
+	virtual void PlayKnockDownEffects();
+
+	// Creates and initializes the floating status bar for heroes.
+	// Safe to call many times because it checks to make sure it only executes once.
+	UFUNCTION()
+		void InitializeFloatingStatusBar();
+
+	FName GetWeaponAttachPoint();
+
+	UFUNCTION(BlueprintCallable, Category = "RPGPROT|Inventory")
+		int32 GetNumWeapons() const;
 
 	virtual void BeginPlay() override;
 
@@ -109,7 +132,6 @@ public:
 
 	/** Client only */
 	virtual void OnRep_PlayerState() override;
-	virtual void OnRep_Controller() override;
 
 	void OnAbilityActivationFailed(const UGameplayAbility* FailedAbility, const FGameplayTagContainer& FailTags);
 
@@ -127,9 +149,14 @@ public:
 
 	void SetPerspective();
 
+	virtual void FinishDying() override;
 
 	virtual void SetHealth(float Health) override;
 	virtual void SetMana(float Mana) override;
 	virtual void SetStamina(float Stamina) override;
-	virtual void SetShield(float Shield) override;
+
+	class URP_FloatingStatusBarWidget* GetFloatingStatusBar();
+
+	UFUNCTION()
+		void RotateStatusBar();
 };

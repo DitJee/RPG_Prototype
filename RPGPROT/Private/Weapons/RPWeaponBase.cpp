@@ -8,6 +8,11 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
+#include "Characters/RPCharacterBase.h"
+#include "Characters/Abilities/RPAbilitySystemComponent.h"
+#include "GameplayEffect.h"
+
+
 // Sets default values
 ARPWeaponBase::ARPWeaponBase()
 {
@@ -31,6 +36,9 @@ ARPWeaponBase::ARPWeaponBase()
 			50.0f
 		)
 	);
+
+	CapsuleCollision->OnComponentBeginOverlap.AddDynamic(this, &ARPWeaponBase::OnBeginOverlap);
+	CapsuleCollision->OnComponentEndOverlap.AddDynamic(this, &ARPWeaponBase::OnEndOverlap);
 
 	bIsAttacking = false;
 	bIsReadyForExec = true;
@@ -79,40 +87,79 @@ void ARPWeaponBase::DisableCollision()
 	}
 }
 
-void ARPWeaponBase::NotifyActorBeginOverlap(AActor* OtherActor)
+void ARPWeaponBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	/**
 		Check if the weapon is hitting myself
 	*/
-	if (GetInstigator() == nullptr)
+	
+	if (GetInstigator() == OtherActor || OtherActor == nullptr)
 	{
 		return;
 	}
 
-	if ((GetInstigator()->GetClass() != OtherActor->GetClass()) && bIsAttacking)
+	// if ((GetInstigator()->GetClass() != OtherActor->GetClass()) && bIsAttacking)
+	if (bIsAttacking && bIsReadyForExec && DamageEffect)
 	{
-		if (bIsReadyForExec)
+		UE_LOG(LogTemp, Warning,
+			TEXT("%s() %s has execute melee attack"),
+			*FString(__FUNCTION__),
+			*GetInstigator()->GetName()
+		);
+
+		bIsReadyForExec = false;
+
+		FGameplayEventData EventData;
+		EventData.Instigator = GetInstigator();
+		EventData.Target = OtherActor;
+
+		ARPCharacterBase* HitActor = Cast<ARPCharacterBase>(OtherActor);
+
+		if (HitActor == nullptr)
 		{
+			return;
+		}
 
-			bIsReadyForExec = false;
+		UAbilitySystemComponent* HitActorASC = HitActor->GetAbilitySystemComponent();
 
-			FGameplayEventData EventData;
-			EventData.Instigator = GetInstigator();
-			EventData.Target = OtherActor;
+		ARPCharacterBase* InstigatorActor = Cast<ARPCharacterBase>(GetInstigator());
+
+		if (HitActorASC && InstigatorActor)
+		{
+			
+			FGameplayEffectContextHandle EffectContext = HitActorASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			// Add Hit result for hit reaction calculation
+			EffectContext.AddHitResult(SweepResult);
+
+			DamageEffectSpecHandle = HitActorASC->MakeOutgoingSpec(
+				DamageEffect,
+				InstigatorActor->GetAbilityLevel(AbilityInputID),
+				EffectContext
+			);
+
+			
+
+			HitActorASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
 
 			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 				GetInstigator(),
 				AttackEventTag,
 				EventData
 			);
-			
-			// TODO: Consume consumable
+
 		}
+
+			
+		// TODO: Consume consumable
+		
 	}
 }
 
 
-void ARPWeaponBase::NotifyActorEndOverlap(AActor* OtherActor)
+
+void ARPWeaponBase::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	
 	bIsReadyForExec = true;

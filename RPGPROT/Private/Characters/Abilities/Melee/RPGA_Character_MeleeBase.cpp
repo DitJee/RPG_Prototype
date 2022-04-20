@@ -28,7 +28,7 @@ void URPGA_Character_MeleeBase::ActivateAbility(const FGameplayAbilitySpecHandle
 	URPCharacterMovementComponent* CMC = Cast<URPCharacterMovementComponent>(Actor->GetMovementComponent());
 
 	bool bIsInAir = CMC->IsFalling();
-
+	
 	if (bIsSuccess && !bIsInAir)
 	{
 		/**
